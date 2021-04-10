@@ -474,6 +474,37 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
   return true;
 }
 
+bool NetlinkUtils::GetStationNoise(uint32_t interface_index, uint32_t* noise) {
+  NL80211Packet get_station_noise(
+      netlink_manager_->GetFamilyId(),
+      NL80211_CMD_GET_SURVEY,
+      netlink_manager_->GetSequenceNumber(),
+      getpid());
+  get_station_noise.AddFlag(NLM_F_DUMP);
+
+  unique_ptr<const NL80211Packet> response;
+  if (!netlink_manager_->SendMessageAndGetSingleResponse(get_station_noise,
+                                                         &response)) {
+    LOG(ERROR) << "NL80211_CMD_GET_STATION_NOISE failed";
+    return false;
+  }
+  if (response->GetCommand() != NL80211_CMD_NEW_SURVEY_RESULTS) {
+    LOG(ERROR) << "Wrong command in response to a get station noise request: "
+               << static_cast<int>(response->GetCommand());
+    return false;
+  }
+  NL80211NestedAttr survey_info(0);
+  if (!response->GetAttribute(NL80211_ATTR_SURVEY_INFO, &survey_info)) {
+    LOG(ERROR) << "Failed to get NL80211_ATTR_STA_INFO";
+    return false;
+  }
+  if (!survey_info.GetAttributeValue(NL80211_SURVEY_INFO_NOISE, noise)) {
+    LOG(ERROR) << "Failed to get NL80211_SURVEY_INFO_NOISE";
+    return false;
+  }
+  return true;
+}
+
 bool NetlinkUtils::GetStationInfo(uint32_t interface_index,
                                   const array<uint8_t, ETH_ALEN>& mac_address,
                                   StationInfo* out_station_info) {

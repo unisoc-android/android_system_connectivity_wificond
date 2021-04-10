@@ -232,6 +232,15 @@ bool ClientInterfaceImpl::SignalPoll(vector<int32_t>* out_signal_poll_results) {
   out_signal_poll_results->push_back(
       static_cast<int32_t>(station_info.station_rx_bitrate/10));
 
+  uint32_t noise;
+  if (netlink_utils_->GetStationNoise(interface_index_, &noise)){
+    LOG(INFO) << "Get station noise value " << noise;
+  } else {
+    noise = 0;
+    LOG(INFO) << "Fail station noise info, set noise value 0";
+  }
+  out_signal_poll_results->push_back(static_cast<int32_t>(noise));
+
   return true;
 }
 

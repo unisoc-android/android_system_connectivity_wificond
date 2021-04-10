@@ -196,6 +196,11 @@ class NetlinkUtils {
                             ScanCapabilities* out_scan_capabilities,
                             WiphyFeatures* out_wiphy_features);
 
+  // Get station noise from kernel.
+  // |*noise]| station noise information.
+  // Returns true on success.
+  virtual bool GetStationNoise(uint32_t interface_index, uint32_t* noise);
+
   // Get station info from kernel.
   // |*out_station_info]| is the struct of available station information.
   // Returns true on success.
